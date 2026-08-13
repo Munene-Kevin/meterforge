@@ -1,0 +1,24 @@
+# IntelliJ
+.idea/
+*.iml
+
+# Maven
+target/
+
+# Java
+*.class
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+
+# Environment / secrets
+.env
+
+# Local configuration
+application-local.properties
+
+# Temporary files
+*.tmp
