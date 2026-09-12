@@ -1,24 +1,44 @@
-# IntelliJ
+# IDEs and editors
 .idea/
+.vscode/
+.settings/
 *.iml
+*.ipr
+*.iws
+.classpath
+.project
+.factorypath
+.springBeans
+.sts4-cache/
 
-# Maven
+# Build and output directories
 target/
+build/
+out/
+bin/
 
 # Java
 *.class
 
 # Logs
 *.log
+logs/
 
 # OS
 .DS_Store
+Thumbs.db
 
 # Environment / secrets
 .env
+.env.*
+!.env.example
 
-# Local configuration
+# Spring Boot / local config
 application-local.properties
+**/application-local.properties
 
 # Temporary files
 *.tmp
+*.temp
+*.swp
+*~
