@@ -1,0 +1,23 @@
+@startuml
+' MeterForge - C4 Context diagram
+' Generated from documentation in documentation/01-Problem_understanding
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(saas_admin, "SaaS Administrator", "Manages tenant settings, customers, plans and billing settings")
+Person(saas_analyst, "SaaS Analyst", "Consumes revenue, churn and usage reports")
+Person(platform_engineer, "Platform Engineer", "Integrates MeterForge with tenant systems using APIs")
+
+System(meterforge, "MeterForge", "Tenant-isolated subscription, usage, billing and analytics platform")
+
+System_Ext(payment_provider, "Payment Provider", "Stripe, PayPal or similar — handles payments")
+System_Ext(usage_source, "Usage Source", "External systems that emit usage events (SDKs, webhooks)")
+System_Ext(external_systems, "Other Systems", "CRM, Accounting, BI systems that integrate with MeterForge via APIs/webhooks")
+
+Rel(saas_admin, meterforge, "Uses (admin UI / API) — manage tenants, customers, plans, subscriptions")
+Rel(saas_analyst, meterforge, "Uses (dashboards / reports) — revenue, churn, usage analytics")
+Rel(platform_engineer, meterforge, "Integrates via secure APIs / webhooks")
+Rel(meterforge, payment_provider, "Sends invoices / charges to")
+Rel(usage_source, meterforge, "Sends usage events to")
+Rel(meterforge, external_systems, "Exposes APIs / Webhooks for integration")
+
+@enduml

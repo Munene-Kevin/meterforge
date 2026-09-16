@@ -1,0 +1,44 @@
+@startuml
+' MeterForge - C4 Container diagram
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(saas_admin, "SaaS Administrator")
+Person(saas_analyst, "SaaS Analyst")
+Person(platform_engineer, "Platform Engineer")
+
+System_Boundary(mf_boundary, "MeterForge"){
+  Container(web_app,    "Web App / Admin UI", "React (or similar)", "Tenant admin, user UI")
+  Container(api,        "Public API / Backend", "HTTP JSON API (Node/Go/Java)", "Tenant-aware REST/GraphQL API")
+  Container(ingest,     "Usage Ingestion Service", "HTTP + Queue / Stream", "Receives, validates and enqueues usage events")
+  Container(event_broker, "Event Broker", "Kafka / RabbitMQ / SQS", "Buffers events and decouples components")
+  Container(billing,    "Billing Engine", "Service (batch + realtime)", "Calculates charges, proration, invoicing, subscription state machine")
+  Container(auth,       "Auth & RBAC Service", "OAuth/JWT / Identity Provider", "Tenant-scoped authentication and authorization")
+  Container(db,         "Primary Data Store", "Postgres / RDBMS", "Canonical entities: tenant, customer, user, product, plan, subscription, invoice, usage")
+  Container(aggregator, "Usage Aggregation / OLAP", "ClickHouse / BigQuery", "Aggregated usage for billing and analytics")
+  Container(analytics,  "Analytics & Reporting", "Service + Dashboards", "Revenue, churn, growth reports")
+  Container(worker,     "Background Workers", "Worker pool / cron jobs", "Reconciliation, invoice generation, retries")
+  Container(integrator, "Integration Worker", "Service", "Payment connectors, webhooks, external syncs")
+}
+
+' External systems
+Container_Ext(payment_provider, "Payment Provider", "Stripe/PayPal")
+Container_Ext(usage_source, "Usage Source", "SDKs, webhooks, 3rd-party emitters")
+
+' Relationships
+Rel(saas_admin, web_app, "Uses")
+Rel(saas_admin, api, "Uses (admin API)")
+Rel(saas_analyst, analytics, "Uses")
+Rel(platform_engineer, api, "Integrates with / calls API")
+Rel(usage_source, ingest, "Sends usage events to")
+Rel(ingest, event_broker, "Publishes validated events to")
+Rel(event_broker, billing, "Consumes events for billing")
+Rel(billing, db, "Reads/Writes billing records")
+Rel(billing, payment_provider, "Sends charges / invoice requests to")
+Rel(billing, worker, "Triggers background jobs (invoice generation, retries)")
+Rel(db, analytics, "Feeds aggregated data to")
+Rel(aggregator, analytics, "Supports analytical queries")
+Rel(api, auth, "Validates tokens with")
+Rel(api, db, "Reads/Writes tenant data")
+Rel(integrator, payment_provider, "Integrates/payments")
+
+@enduml

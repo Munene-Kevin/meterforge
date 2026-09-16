@@ -1,0 +1,40 @@
+@startuml
+' MeterForge - C4 Component diagrams (focused on Billing Engine and Ingestion)
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+' Billing Engine boundary
+Container(billing, "Billing Engine", "Service")
+
+Container_Boundary(billing_boundary, "Billing Engine"){
+  Component(usage_consumer, "Usage Consumer", "Consumes validated events from broker and writes usage records")
+  Component(aggregator, "Usage Aggregator", "Aggregates raw events into billable metrics (time windows/tiers)")
+  Component(pricing_engine, "Pricing Engine", "Applies plan rules, tiers, discounts, taxes")
+  Component(proration, "Proration Service", "Calculates prorated charges when subscriptions change")
+  Component(invoice_generator, "Invoice Generator", "Creates invoices and ledger entries")
+  Component(sub_state, "Subscription State Machine", "Manages lifecycle transitions: trial, active, past_due, canceled")
+  Component(reconciler, "Reconciler", "Periodically reconciles billed vs. usage for accuracy")
+}
+
+' Ingestion boundary
+Container(ingest, "Usage Ingestion Service", "Service")
+Container_Boundary(ingest_boundary, "Usage Ingestion"){
+  Component(api_receiver, "HTTP / Webhook Receiver", "Accepts incoming usage events")
+  Component(validator, "Event Validator", "Schema validation, authenticity checks, deduplication")
+  Component(enricher, "Event Enricher", "Adds tenant/customer context and derived fields")
+  Component(publisher, "Event Publisher", "Pushes validated events to Event Broker / Queue")
+}
+
+' Relationships (components)
+Rel(ingest, billing, "Publishes events to broker consumed by Billing Consumer")
+Rel(api_receiver, validator, "Forwards events to")
+Rel(validator, enricher, "If valid")
+Rel(enricher, publisher, "Publishes to broker")
+Rel(usage_consumer, aggregator, "Sends raw usage to")
+Rel(aggregator, pricing_engine, "Provides aggregated metrics to")
+Rel(pricing_engine, invoice_generator, "Sends charge lines to")
+Rel(sub_state, proration, "Queries for subscription period info")
+Rel(invoice_generator, reconciler, "Provides invoices for reconciliation")
+
+' Notes: design choices influenced by documentation: multi-tenant isolation, idempotent ingestion, deterministic billing and reconciliation.
+
+@enduml
